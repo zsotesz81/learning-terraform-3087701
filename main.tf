@@ -34,6 +34,7 @@ resource "aws_instance" "web" {
   instance_type = var.instance_type
 
   vpc_security_group_ids = [module.web_sg.security_group_id]
+  subnet_id = module.vpc.public_subnets[0]
 
   tags = {
     Name = "HelloWorld"
