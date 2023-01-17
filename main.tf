@@ -41,6 +41,46 @@ resource "aws_instance" "web" {
   }
 }
 
+module "elb" {
+  source  = "terraform-aws-modules/elb/aws"
+  version = "~> 2.0"
+
+  name = "web-elb"
+  
+  vpc_id          = module.vpc.vpc_id
+  subnets         = module.vpc.public_subnets
+  security_groups = module.web_sg.security_group_id
+  
+  load_balancer_type = "application"
+  
+  target_groups = [
+    {
+      name_prefix       = "blog"
+      backend_protocol  = "HTTP"
+      backend_port      = 80
+      target_type       = "instance"
+      targets = {
+        my_target= {
+          target_id = aws_instance.web.id
+          port      = 80
+        }
+      }
+    }
+  ]
+
+  http_tcp_listeners = [
+    {
+      port               = 80
+      protocol           = "HTTP"
+      target_group_index = 0
+    }
+  ]
+
+  tags = {
+    Environment = "dev"
+  }
+}
+
 module "web_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.17.1"
